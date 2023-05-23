@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hand Gesture Recognition</title>
+    <style>
+        #container {
+            display: flex;
+            align-items: flex-start;
+        }
+        #canvas {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hand Gesture Recognition</h1>
+    <div id="container">
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
+    </div>
+    <p id="gesture">Predicted Gesture: </p> <!-- Add a <p> element with id "gesture" to display the predicted gesture -->
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the webcam: ', error);
+                });
+        } else {
+            console.error('Webcam access not supported in this browser.');
+        }
+
+        video.addEventListener('play', function() {
+            setInterval(function() {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Fetch the predicted gesture from the server and update the HTML element with id "gesture"
+                fetch('/get_prediction')
+                    .then(response => response.text())
+                    .then(gesture => {
+                        const gestureElement = document.getElementById('gesture');
+                        gestureElement.textContent = 'Predicted Gesture: ' + gesture;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching the predicted gesture: ', error);
+                    });
+            }, 1000); // Update the canvas and gesture every 1 second
+        });
+    </script>
+</body>
+</html>
