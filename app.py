@@ -1,6 +1,6 @@
-from flask import Flask, render_template, Response
 import cv2
 import time
+from flask import Flask, render_template, Response, request
 
 app = Flask(__name__)
 
@@ -41,22 +41,31 @@ def capture_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n'
                b'Gesture: ' + gesture.encode() + b'\r\n')
-        
+
         # Capture a frame every 1 second
         current_time = time.time()
         if current_time - last_capture_time >= 1.0:
             # Perform additional processing or saving of the captured frame if needed
             last_capture_time = current_time
 
-# Route for the home page
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Route for streaming video frames
-@app.route('/video_feed')
-def video_feed():
-    return Response(capture_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/predict_image', methods=['GET', 'POST'])
+def predict_image():
+    if request.method == 'POST':
+        # Code for handling the uploaded image file
+        file = request.files['image']
+        # Perform prediction on the image file (replace with your actual prediction logic)
+        predicted_gesture = get_prediction(file)
+        return render_template('prediction.html', predicted_gesture=predicted_gesture)
+
+    return render_template('predict_image.html')
+
+@app.route('/predict_video')
+def predict_video():
+    return render_template('predict_video.html')
 
 # Route for getting the predicted gesture
 @app.route('/get_prediction')

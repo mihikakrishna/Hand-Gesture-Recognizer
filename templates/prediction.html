@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hand Gesture Recognition</title>
+    <title>Hand Gesture Recognition - Prediction Result</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/styles.css') }}">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Hand Gesture Recognition</h1>
-        <div class="text-center mt-5">
-            <a href="{{ url_for('predict_image') }}" class="btn btn-primary mr-2">Predict from Image</a>
-            <a href="{{ url_for('predict_video') }}" class="btn btn-primary">Predict from Video</a>
-        </div>
+    <div class="container">
+        <h2 class="text-center">Prediction Result</h2>
+        <p class="text-center">Predicted gesture: {{ predicted_gesture }}</p>
     </div>
 
     <!-- Bootstrap JS -->

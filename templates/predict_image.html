@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hand Gesture Recognition</title>
+    <title>Hand Gesture Recognition - Predict from Image</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- Custom CSS -->
@@ -9,11 +9,13 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Hand Gesture Recognition</h1>
-        <div class="text-center mt-5">
-            <a href="{{ url_for('predict_image') }}" class="btn btn-primary mr-2">Predict from Image</a>
-            <a href="{{ url_for('predict_video') }}" class="btn btn-primary">Predict from Video</a>
-        </div>
+        <h2 class="text-center">Predict from Image</h2>
+        <form action="{{ url_for('predict_image') }}" method="post" enctype="multipart/form-data" class="text-center mt-5">
+            <div class="form-group">
+                <input type="file" name="image" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </form>
     </div>
 
     <!-- Bootstrap JS -->
