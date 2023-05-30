@@ -1,69 +1,26 @@
-# organize imports
 import cv2
-import imutils
+import cvzone
+from cvzone.HandTrackingModule import HandDetector
 import numpy as np
+import imutils
 from sklearn.metrics import pairwise
 from keras.models import load_model
 from skimage.transform import resize
+import tensorflow as tf
 
-# global variables
-bg = None
+input_shape = (120, 120)
 
+def getPredictedClass(model, img):
+    image = img
+    image = cv2.resize(image, input_shape)
+    gray_image = cv2.resize(image, input_shape)
 
-def run_avg(image, accumWeight):
-    global bg
-    # initialize the background
-    if bg is None:
-        bg = image.copy().astype("float")
-        return
+    gray_image = gray_image.reshape(1, 120, 120, 1)
 
-    # compute weighted average, accumulate it and update the background
-    cv2.accumulateWeighted(image, bg, accumWeight)
+    # Predict the class
+    prediction_array = model.predict_on_batch(gray_image)
+    predicted_class = np.argmax(prediction_array, axis=1)
 
-
-def segment(image, threshold=25):
-    global bg
-    # find the absolute difference between background and current frame
-    diff = cv2.absdiff(bg.astype("uint8"), image)
-
-    # threshold the diff image so that we get the foreground
-    thresholded = cv2.threshold(diff, threshold, 255, cv2.THRESH_BINARY)[1]
-
-    # get the contours in the thresholded image
-    (cnts, _) = cv2.findContours(thresholded.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # return None, if no contours detected
-    if len(cnts) == 0:
-        return
-    else:
-        # based on contour area, get the maximum contour which is the hand
-        segmented = max(cnts, key=cv2.contourArea)
-        return (thresholded, segmented)
-
-
-def _load_weights():
-    try:
-        model = load_model("hand_gesture_recog_model.h5")
-        print(model.summary())
-        print(model.get_weights())
-        print(model.optimizer)
-        return model
-    except Exception as e:
-        return None
-
-
-def getPredictedClass(model):
-
-    image = cv2.imread('Temp.png')
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray_image = imresize(gray_image, [100, 120])
-
-    gray_image = gray_image.reshape(1, 100, 120, 1)
-
-    prediction = model.predict_on_batch(gray_image)
-
-    predicted_class = np.argmax(prediction)
-    print(predicted_class)
     if predicted_class == 0:
         return "Blank"
     elif predicted_class == 1:
@@ -77,93 +34,88 @@ def getPredictedClass(model):
     elif predicted_class == 5:
         return "High Five"
 
-
 if __name__ == "__main__":
-    # initialize accumulated weight
-    accumWeight = 0.5
+    cap = cv2.VideoCapture(0)
+    detector = HandDetector(detectionCon=0.2)
 
-    # get the reference to the webcam
-    camera = cv2.VideoCapture(0)
+    # Define the chroma key color in HSV
+    upper_color = np.array([253, 255, 243], dtype=np.uint8)
+    lower_color = np.array([151, 113, 73], dtype=np.uint8)
 
-    fps = int(camera.get(cv2.CAP_PROP_FPS))
-    # region of interest (ROI) coordinates
-    top, right, bottom, left = 10, 350, 225, 590
-    # initialize num of frames
-    num_frames = 0
-    # calibration indicator
-    calibrated = False
-    model = _load_weights()
-    k = 0
-    # keep looping, until interrupted
-    while (True):
-        # get the current frame
-        (grabbed, frame) = camera.read()
+    # Define color thresholds for black and white conversion
+    black_threshold = 99
+    white_threshold = 100
 
-        # resize the frame
-        frame = imutils.resize(frame, width=700)
-        # flip the frame so that it is not the mirror view
-        frame = cv2.flip(frame, 1)
+    predictedClass = ""
 
-        # clone the frame
-        clone = frame.copy()
+    # Load the model
+    try:
+        model = load_model("hand_gesture_recognition_5.h5")
+    except Exception as e:
+        print(e)
 
-        # get the height and width of the frame
-        (height, width) = frame.shape[:2]
+    while True:
+        success, img = cap.read()
+        img = cv2.flip(img, 1)
+        hands = detector.findHands(img, draw=False)
 
-        # get the ROI
-        roi = frame[top:bottom, right:left]
+        if hands:
+            # Get the hand landmarks
+            hand1 = hands[0]  # if there's only one hand
 
-        # convert the roi to grayscale and blur it
-        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (7, 7), 0)
+            # Crop the hand from the image
+            x, y, w, h = hand1['bbox']
+            w = w + 80
+            h = h + 80
+            x = x - 40
+            y = y - 40
+            hand_crop = img[y:y + h, x:x + w].copy()
 
-        # to get the background, keep looking till a threshold is reached
-        # so that our weighted average model gets calibrated
-        if num_frames < 30:
-            run_avg(gray, accumWeight)
-            if num_frames == 1:
-                print("[STATUS] please wait! calibrating...")
-            elif num_frames == 29:
-                print("[STATUS] calibration successfull...")
-        else:
-            # segment the hand region
-            hand = segment(gray)
-            # check whether hand region is segmented
-            if hand is not None:
-                
-                # if yes, unpack the thresholded image and
-                # segmented region
-                (thresholded, segmented) = hand
+            if x >= 0 and y >= 0 and x + w <= img.shape[1] and y + h <= img.shape[0]:
+                hand_crop = img[y:y + h, x:x + w].copy()
 
-                # draw the segmented region and display the frame
-                cv2.drawContours(clone, [segmented + (right, top)], -1, (0, 0, 255))
+                # Convert cropped hand to grayscale
+                hand_crop_gray = cv2.cvtColor(hand_crop, cv2.COLOR_BGR2GRAY)
 
-                # count the number of fingers
-                # fingers = count(thresholded, segmented)
-                if k % (fps / 6) == 0:
-                    cv2.imwrite('Temp.png', thresholded)
-                    predictedClass = getPredictedClass(model)
-                    cv2.putText(clone, str(predictedClass), (70, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (5, 5), 0)
 
-                # show the thresholded image
-                cv2.imshow("Thesholded", thresholded)
-        k = k + 1
-        # draw the segmented hand
-        cv2.rectangle(clone, (left, top), (right, bottom), (0, 255, 0), 2)
+                sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
 
-        # increment the number of frames
-        num_frames += 1
+                # Apply the sharpening filter
+                hand_crop_gray = cv2.filter2D(hand_crop_gray, -1, sharpen_kernel)
 
-        # display the frame with segmented hand
-        cv2.imshow("Video Feed", clone)
+                # Convert colors close to black to complete black
+                hand_crop_gray[hand_crop_gray < black_threshold] = 0
 
-        # observe the keypress by the user
-        keypress = cv2.waitKey(1) & 0xFF
+                # Convert colors close to white to complete white
+                hand_crop_gray[hand_crop_gray > white_threshold] = 255
 
-        # if the user pressed "q", then stop looping
-        if keypress == ord("q"):
+                hand_crop_gray = cv2.bitwise_not(hand_crop_gray)
+
+                (cnts, _) = cv2.findContours(hand_crop_gray.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                if len(cnts) == 0:
+                    continue
+                else:
+                    # based on contour area, get the maximum contour which is the hand
+                    segmented = max(cnts, key=cv2.contourArea)
+
+                    # Create a blank canvas to draw the contour
+                    canvas = np.zeros_like(hand_crop_gray, dtype=np.uint8)
+
+                    # Draw the hand contour on the canvas
+                    cv2.drawContours(canvas, [segmented], -1, 255, thickness=cv2.FILLED)
+
+                predictedClass = (getPredictedClass(model, canvas))
+
+                cv2.imshow("Hand Contour", canvas)
+
+        cv2.putText(img, str(predictedClass), (70, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        cv2.imshow("Image", img)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # free up memory
-    camera.release()
+    cap.release()
     cv2.destroyAllWindows()
