@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     # Load the model
     try:
-        model = load_model("hand_gesture_recognition_6.h5")
+        model = load_model("MLModel\hand_gesture_recognition_6.h5")
     except Exception as e:
         print(e)
 
