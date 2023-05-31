@@ -1,9 +1,22 @@
 import cv2
+import matplotlib.pyplot as plt
 from cvzone.HandTrackingModule import HandDetector
 import numpy as np
+from PIL import ImageEnhance
 from keras.models import load_model
 
 input_shape = (120, 120)
+
+
+def reduce_highlights(image, threshold=220, inpaint_radius=3):
+
+    # create a mask of the highlights
+    _, highlight_mask = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+
+    # perform inpainting
+    final_image = cv2.inpaint(image, highlight_mask, inpaint_radius, cv2.INPAINT_TELEA)
+
+    return final_image
 
 def getPrediction(model, img):
     image = cv2.resize(img, input_shape)
@@ -46,7 +59,7 @@ if __name__ == "__main__":
 
     # Load the model
     try:
-        model = load_model("MLModel\hand_gesture_recognition_6.h5")
+        model = load_model("hand_gesture_recognition_6.h5")
     except Exception as e:
         print(e)
 
@@ -73,7 +86,19 @@ if __name__ == "__main__":
                 # Convert cropped hand to grayscale
                 hand_crop_gray = cv2.cvtColor(hand_crop, cv2.COLOR_BGR2GRAY)
 
-                hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (7, 7), 0)
+                equalized = cv2.equalizeHist(hand_crop_gray)
+
+                average_pixel = np.mean(hand_crop_gray)
+
+                hand_crop_gray = reduce_highlights(hand_crop_gray)
+
+                # Compute the scaling factor
+                scaling_factor = 128 / average_pixel
+
+                # Apply color correction
+                hand_crop_gray = np.clip(hand_crop_gray * scaling_factor, 0, 255).astype(np.uint8)
+
+                hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (5, 5), 0)
                 hand_crop_gray = cv2.bilateralFilter(hand_crop_gray, 9, 75, 75)
 
                 sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
@@ -89,7 +114,7 @@ if __name__ == "__main__":
 
                 hand_crop_gray = cv2.bitwise_not(hand_crop_gray)
 
-                (cnts, _) = cv2.findContours(hand_crop_gray.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                (cnts, _) = cv2.findContours(hand_crop_gray.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
                 if len(cnts) == 0:
                     continue
@@ -105,7 +130,7 @@ if __name__ == "__main__":
 
                 predictedClass = (getPrediction(model, hand_crop_gray))
 
-                cv2.imshow("Hand Contour", hand_crop_gray)
+                cv2.imshow("Hand Detection", hand_crop_gray)
 
         if hands:
             cv2.putText(img, str(predictedClass), (x + 20, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
