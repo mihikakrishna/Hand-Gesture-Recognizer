@@ -34,8 +34,9 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     detector = HandDetector(detectionCon=0.2)
 
-    x = 70
-    y = 45
+    # default crop position
+    x = 0 
+    y = 0
 
     # Define color thresholds for black and white conversion
     black_threshold = 127
@@ -72,7 +73,8 @@ if __name__ == "__main__":
                 # Convert cropped hand to grayscale
                 hand_crop_gray = cv2.cvtColor(hand_crop, cv2.COLOR_BGR2GRAY)
 
-                hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (5, 5), 0)
+                # hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (7, 7), 0)
+                hand_crop_gray = cv2.bilateralFilter(hand_crop_gray, 9, 75, 75)
 
                 sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
 
