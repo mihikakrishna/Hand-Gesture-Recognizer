@@ -50,14 +50,6 @@ def getPredictedClass(model, img):
     elif predicted_class == 5:
         return "High Five"
 
-# Function to perform inference and get the predicted gesture
-def get_prediction(frame):
-    # Perform inference on the frame using the machine learning model
-    # Send the frame to the backend for inference and receive the predicted gesture
-    gesture = "Predicted Gesture (Dummy Code)"
-
-    return gesture
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -138,14 +130,6 @@ def predict_image():
         return render_template('prediction.html', predicted_gesture=predicted_gesture)
 
     return render_template('predict_image.html')
-
-
-# Route for getting the predicted gesture
-@app.route('/get_prediction')
-def get_prediction_route():
-    frame = None  # Replace None with the actual frame from the video capture
-    gesture = get_prediction(frame)
-    return gesture
 
 if __name__ == '__main__':
     app.run(debug=True)
