@@ -5,7 +5,7 @@
 ## About The Project
 ![](https://github.com/mihikakrishna/ECS171-Project/blob/main/demo/live_demo.gif)
 
-Our ECS171 project is a joint effort by a team of five passionate individuals aiming to understand how humans interact with computers. We built a hand gesture recognition system that we implemented on a website. By combining our knowledge of deep learning techniques and computer vision algorithms, our objective was to create a system capable of accurately recognizing and categorizing various hand gestures in real-time scenarios. Through careful testing and continuous refinement, we assessed the performance of our hand gesture recognition system using a diverse range of hand gestures. The outcomes we obtained illustrate the exciting possibilities of improving human-computer interaction through intuitive and effortless control using gestures in different applications.
+Our ECS171 project is a joint effort by a team of five passionate individuals aiming to understand how humans interact with computers. We built a hand gesture recognition system that we implemented on a website. By combining our knowledge of deep learning techniques and computer vision algorithms, our objective was to create a system capable of accurately recognizing and categorizing various hand gestures in real-time scenarios. Through careful testing and continuous refinement, we assessed the performance of our hand gesture recognition system using a diverse range of hand gestures. The outcomes we obtained illustrate the exciting possibilities of improving human-computer interaction through intuitive and effortless control using gestures in different applications. The possibilities are endless.
 
 ## Getting Started
 
