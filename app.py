@@ -4,8 +4,6 @@ from flask import Flask, render_template, Response, request
 import cvzone
 from cvzone.HandTrackingModule import HandDetector
 import numpy as np
-import imutils
-from sklearn.metrics import pairwise
 from keras.models import load_model
 from skimage.transform import resize
 import tensorflow as tf
@@ -18,6 +16,16 @@ model = load_model("hand_gesture_recognition_6.h5")
 
 input_shape = (120, 120)
 
+def reduce_highlights(image, threshold=220, inpaint_radius=3):
+
+    # create a mask of the highlights
+    _, highlight_mask = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+
+    # perform inpainting
+    final_image = cv2.inpaint(image, highlight_mask, inpaint_radius, cv2.INPAINT_TELEA)
+
+    return final_image
+
 def getPredictedClass(model, img):
     image = img
     image = cv2.resize(image, input_shape)
@@ -29,7 +37,9 @@ def getPredictedClass(model, img):
     prediction_array = model.predict_on_batch(gray_image)
     predicted_class = np.argmax(prediction_array, axis=1)
 
-    if predicted_class == 1:
+    if predicted_class == 0:
+        return "Blank"
+    elif predicted_class == 1:
         return "OK"
     elif predicted_class == 2:
         return "Thumbs Up"
@@ -39,8 +49,14 @@ def getPredictedClass(model, img):
         return "Punch"
     elif predicted_class == 5:
         return "High Five"
-    else:
-        return "Blank"
+
+# Function to perform inference and get the predicted gesture
+def get_prediction(frame):
+    # Perform inference on the frame using the machine learning model
+    # Send the frame to the backend for inference and receive the predicted gesture
+    gesture = "Predicted Gesture (Dummy Code)"
+
+    return gesture
 
 @app.route('/')
 def index():
@@ -54,15 +70,16 @@ def predict_image():
         # Perform prediction on the image file (replace with your actual prediction logic)
         detector = HandDetector(detectionCon=0.2)
 
-        # Define the chroma key color in HSV
-        upper_color = np.array([253, 255, 243], dtype=np.uint8)
-        lower_color = np.array([151, 113, 73], dtype=np.uint8)
+        # default crop position
+        x = 0
+        y = 0
 
         # Define color thresholds for black and white conversion
-        black_threshold = 99
-        white_threshold = 100
+        black_threshold = 127
+        white_threshold = 128
 
-        predicted_gesture = ""
+        predictedClass = ""
+        predicted_gesture = "Blank"
 
         img = plt.imread(file)
 
@@ -88,7 +105,20 @@ def predict_image():
                 # Convert cropped hand to grayscale
                 hand_crop_gray = cv2.cvtColor(hand_crop, cv2.COLOR_BGR2GRAY)
 
+                equalized = cv2.equalizeHist(hand_crop_gray)
+
+                average_pixel = np.mean(hand_crop_gray)
+
+                hand_crop_gray = reduce_highlights(hand_crop_gray)
+
+                # Compute the scaling factor
+                scaling_factor = 128 / average_pixel
+
+                # Apply color correction
+                hand_crop_gray = np.clip(hand_crop_gray * scaling_factor, 0, 255).astype(np.uint8)
+
                 hand_crop_gray = cv2.GaussianBlur(hand_crop_gray, (5, 5), 0)
+                hand_crop_gray = cv2.bilateralFilter(hand_crop_gray, 9, 75, 75)
 
                 sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
 
@@ -105,12 +135,17 @@ def predict_image():
 
                 predicted_gesture = getPredictedClass(model, hand_crop_gray)
 
-                # Convert the array to uint8
-                hand_crop_gray = hand_crop_gray.astype(np.uint8)
-
         return render_template('prediction.html', predicted_gesture=predicted_gesture)
 
     return render_template('predict_image.html')
+
+
+# Route for getting the predicted gesture
+@app.route('/get_prediction')
+def get_prediction_route():
+    frame = None  # Replace None with the actual frame from the video capture
+    gesture = get_prediction(frame)
+    return gesture
 
 if __name__ == '__main__':
     app.run(debug=True)
