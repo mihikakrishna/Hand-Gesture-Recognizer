@@ -9,32 +9,6 @@ Our ECS171 project is a joint effort by a team of five passionate individuals ai
 
 ## Getting Started
 
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Project-Name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
 ### Preparing the ML Model
 To set up the ML model for the static and live demos, please follow these steps:
 1. Download the CNN model file named `hand_gesture_recognition_6.h5` from [this link](https://drive.google.com/drive/folders/1fmsdW8WjGDg14dz2nC_h0zg_p6d907DZ?usp=sharing).
