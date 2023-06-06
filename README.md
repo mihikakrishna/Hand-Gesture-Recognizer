@@ -1,6 +1,6 @@
 # Hand Gesture Recognition (22)
 ### Hi Grader 👋 
-**Fun Fact: ** We were the only group out of 36 groups to have a live VISUAL demo on presentation day 🤯 and it worked seemlessly well. 
+<b>Fun Fact:</b> We were the <b>only</b> group out of 36 groups to have a live VISUAL demo on presentation day 🤯 and it worked seemlessly well. 
 
 ## About The Project
 
