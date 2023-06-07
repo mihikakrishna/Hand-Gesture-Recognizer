@@ -6,14 +6,32 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/styles.css') }}">
+    <style>
+        #uploaded-image {
+            max-width: 500px;
+            max-height: 500px;
+            display: block;
+            margin: 32px auto;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="text-center">Prediction Result</h2>
-        <p class="text-center">Predicted gesture: {{ predicted_gesture }}</p>
+        <h1 class="text-center">Prediction Result: {{ predicted_gesture }}</h1>
+        <img id="uploaded-image" src="" alt="Uploaded Image" class="img-fluid">
+        <div class="text-center mt-5">
+            <a href="{{ url_for('predict_image') }}" class="btn btn-primary mr-2">Upload another image</a>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var imageElement = document.getElementById('uploaded-image');
+            var imageBase64 = "{{ image_data }}";
+            imageElement.src = "data:image/jpeg;base64," + imageBase64;
+        });
+    </script>
 </body>
 </html>

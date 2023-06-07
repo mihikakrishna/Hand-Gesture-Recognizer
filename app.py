@@ -9,6 +9,7 @@ from skimage.transform import resize
 import tensorflow as tf
 from PIL import Image
 import matplotlib.pyplot as plt
+import base64
 
 app = Flask(__name__)
 
@@ -59,6 +60,8 @@ def predict_image():
     if request.method == 'POST':
         # Code for handling the uploaded image file
         file = request.files['image']
+        image_data = file.read()
+        encoded_image = base64.b64encode(image_data).decode('utf-8')
         # Perform prediction on the image file (replace with your actual prediction logic)
         detector = HandDetector(detectionCon=0.2)
 
@@ -127,7 +130,7 @@ def predict_image():
 
                 predicted_gesture = getPredictedClass(model, hand_crop_gray)
 
-        return render_template('prediction.html', predicted_gesture=predicted_gesture)
+        return render_template('prediction.html', predicted_gesture=predicted_gesture, image_data=encoded_image)
 
     return render_template('predict_image.html')
 
