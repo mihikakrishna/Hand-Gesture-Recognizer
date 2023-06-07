@@ -6,14 +6,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/styles.css') }}">
-    <style>
-        #uploaded-image {
-            max-width: 500px;
-            max-height: 500px;
-            display: block;
-            margin: 32px auto;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -26,6 +18,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var imageElement = document.getElementById('uploaded-image');
